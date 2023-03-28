@@ -4,9 +4,7 @@ import datetime
 import os.path
 
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
-import seaborn as sns
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -43,10 +41,6 @@ def main():
     try:
         service = build('calendar', 'v3', credentials=creds)
 
-        # Call the Calendar API
-        now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
-        print('Getting the upcoming 10 events of the calendar: El Gouna')
-
         # Calendar ID's
         calender_ids = {
             'ElGouna': 'c_188ar585ebl7ui6ln4tvulcjjhv0s@resource.calendar.google.com',
@@ -55,14 +49,11 @@ def main():
             'Marrakesch': 'ipt.ch_3731323233333736323633@resource.calendar.google.com',
             'Valencia': 'ipt.ch_383239323032343934@resource.calendar.google.com'
         }
-        # calendarElGouna = 'c_188ar585ebl7ui6ln4tvulcjjhv0s@resource.calendar.google.com'
 
         # create list containing an entry for each day within the next 14 days
-        next30days_dates = [datetime.date.today() + datetime.timedelta(days=x) for x in range(14)]
-        print(next30days_dates)
-
-        # create a list with 14 zeros
+        next14days_dates = [datetime.date.today() + datetime.timedelta(days=x) for x in range(14)]
         next14days_count = [0] * 14
+        now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
 
         upcoming_event_dates = []
         for key, value in calender_ids.items():
@@ -76,50 +67,22 @@ def main():
                 print('No upcoming events found.')
                 return
 
-            # Prints the start and name of the next 10 events
             for event in events:
                 start = event['start'].get('dateTime', event['start'].get('date'))
                 upcoming_event_dates.append(start)
                 # Get the timedelta from now to the event, respecting the timezone offset
                 timedelta = datetime.datetime.strptime(start, '%Y-%m-%dT%H:%M:%S%z') - datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)
-                # Add 1 to the corresponding day in the list, ignoring out-of-range events
                 if 0 <= timedelta.days < 14:
                     next14days_count[timedelta.days-1] += 1
                 print(timedelta.days, start, event['summary'])
 
-        # # Group datetime objects by date
-        # upcoming_event_dates = [datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z') for date in upcoming_event_dates]
-        # upcoming_event_dates.sort()
-        # upcoming_event_dates = [date.date() for date in upcoming_event_dates]
-        # print(upcoming_event_dates)
-        #
-        # # Bar plot of the number of events per day
-        # df = pd.DataFrame(upcoming_event_dates, columns=['date'])
-        # df['count'] = 1
-        # df = df.groupby('date').count()
-        # df.plot(kind='bar', figsize=(20, 10))
-        # plt.show()
-
-        next14days = zip(next30days_dates, next14days_count)
+        next14days = zip(next14days_dates, next14days_count)
         print(next14days)
 
         # Bar plot the next14 days, labeling the bars with its date
         df = pd.DataFrame(next14days, columns=['date', 'count'])
         df.plot(kind='bar', figsize=(20, 10), x='date', y='count')
         plt.show()
-
-        # Bar plot the next14 days, labeling the bars with its date
-
-
-    #    df = pd.DataFrame(next14days, columns=['date', 'count'])
-    #    df.plot(kind='bar', figsize=(20, 10))
-    #    plt.show()
-
-
-
-
-
-
 
     except HttpError as error:
         print('An error occurred: %s' % error)
