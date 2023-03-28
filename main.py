@@ -52,6 +52,7 @@ def main():
 
         # create list containing an entry for each day within the next 14 days
         next14days_dates = [datetime.date.today() + datetime.timedelta(days=x) for x in range(14)]
+        print(next14days_dates)
         next14days_count = [0] * 14
         now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
 
@@ -71,9 +72,9 @@ def main():
                 start = event['start'].get('dateTime', event['start'].get('date'))
                 upcoming_event_dates.append(start)
                 # Get the timedelta from now to the event, respecting the timezone offset
-                timedelta = datetime.datetime.strptime(start, '%Y-%m-%dT%H:%M:%S%z') - datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)
+                timedelta = datetime.datetime.strptime(start, '%Y-%m-%dT%H:%M:%S%z').date() - datetime.datetime.now().replace(tzinfo=datetime.timezone.utc).date()
                 if 0 <= timedelta.days < 14:
-                    next14days_count[timedelta.days-1] += 1
+                    next14days_count[timedelta.days] += 1
                 print(timedelta.days, start, event['summary'])
 
         next14days = zip(next14days_dates, next14days_count)
