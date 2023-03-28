@@ -47,7 +47,11 @@ def main():
             'Malaga': 'c_188d7slmj3sc2jbplcmev2hidrmqu@resource.calendar.google.com',
             'Belek': 'ipt.ch_33363733393132373131@resource.calendar.google.com',
             'Marrakesch': 'ipt.ch_3731323233333736323633@resource.calendar.google.com',
-            'Valencia': 'ipt.ch_383239323032343934@resource.calendar.google.com'
+            'Valencia': 'ipt.ch_383239323032343934@resource.calendar.google.com',
+            'Cascais': 'c_1883hine3ca5uiqugjq45o645eb0a@resource.calendar.google.com',
+            'Oberlech': 'c_1885oen5n6vd4hnkhqf67bcupl1fs@resource.calendar.google.com',
+            'Davos': 'c_18866vdvmbcjoiaqg7qkdjv7f8pec@resource.calendar.google.com',
+            'Malta': 'c_1880uh5sutss8gopjt4e7lsmek7j8@resource.calendar.google.com',
         }
 
         # create list containing an entry for each day within the next 14 days
@@ -66,7 +70,7 @@ def main():
 
             if not events:
                 print('No upcoming events found.')
-                return
+                continue
 
             for event in events:
                 start = event['start'].get('dateTime', event['start'].get('date'))
@@ -75,7 +79,7 @@ def main():
                 timedelta = datetime.datetime.strptime(start, '%Y-%m-%dT%H:%M:%S%z').date() - datetime.datetime.now().replace(tzinfo=datetime.timezone.utc).date()
                 if 0 <= timedelta.days < 14:
                     next14days_count[timedelta.days] += 1
-                print(timedelta.days, start, event['summary'])
+                print(timedelta.days, start, event['summary'] if 'summary' in event else '[No event description]')
 
         next14days = zip(next14days_dates, next14days_count)
         print(next14days)
