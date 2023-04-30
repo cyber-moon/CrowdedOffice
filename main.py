@@ -35,6 +35,24 @@ def main():
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
 
+    # Get all users in the domain | DRAFT CODE: Doesn't work yet. Probably, because I don't have the right permissions to access google's Admin SDK API.
+    # SCOPES_SERVICE_ACCOUNT = ['https://www.googleapis.com/auth/admin.directory.user']
+    # SERVICE_ACCOUNT_FILE = 'sze-hack-ipt-room-calendars.json'
+    #
+    # credentials = service_account.Credentials.from_service_account_file(
+    #     SERVICE_ACCOUNT_FILE, scopes=SCOPES_SERVICE_ACCOUNT)
+    #
+    # # Make a GET request to retrieve a list of all users in your domain
+    # directory_service = build('admin', 'directory_v1', credentials=credentials)
+    # user_list = directory_service.users().list(domain='ipt.ch').execute()
+    # # Instead, could also be used:   user_list = directory_service.groups().get(...).execute()
+    #
+    # # Print each user's primary email address and name.
+    # for user in user_list['users']:
+    #     print(u'{0} ({1})'.format(user['primaryEmail'],
+    #                               user['name']['fullName']))
+
+
     # Prepared observed timeperiod and calendars
     period_start = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
     period_end = (datetime.datetime.utcnow() + datetime.timedelta(days=14)).isoformat() + 'Z'
