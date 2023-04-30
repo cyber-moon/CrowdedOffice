@@ -17,9 +17,6 @@ SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
 
 def main():
-    """Shows basic usage of the Google Calendar API.
-    Prints the start and name of the next 10 events on the user's calendar.
-    """
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -38,56 +35,36 @@ def main():
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
 
+    # Prepared observed timeperiod and calendars
+    period_start = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
+    period_end = (datetime.datetime.utcnow() + datetime.timedelta(days=14)).isoformat() + 'Z'
+    calender_ids = {
+        'Stephan Zehnder': 'stephan.zehnder@ipt.ch',
+        'Sarah Moy de Vitry': 'sarah.moydevitry@ipt.ch',
+    }
+
     try:
         service = build('calendar', 'v3', credentials=creds)
 
-        # Calendar ID's
-        calender_ids = {
-            'ElGouna': 'c_188ar585ebl7ui6ln4tvulcjjhv0s@resource.calendar.google.com',
-            'Malaga': 'c_188d7slmj3sc2jbplcmev2hidrmqu@resource.calendar.google.com',
-            'Belek': 'ipt.ch_33363733393132373131@resource.calendar.google.com',
-            'Marrakesch': 'ipt.ch_3731323233333736323633@resource.calendar.google.com',
-            'Valencia': 'ipt.ch_383239323032343934@resource.calendar.google.com',
-            'Cascais': 'c_1883hine3ca5uiqugjq45o645eb0a@resource.calendar.google.com',
-            'Oberlech': 'c_1885oen5n6vd4hnkhqf67bcupl1fs@resource.calendar.google.com',
-            'Davos': 'c_18866vdvmbcjoiaqg7qkdjv7f8pec@resource.calendar.google.com',
-            'Malta': 'c_1880uh5sutss8gopjt4e7lsmek7j8@resource.calendar.google.com',
-        }
-
-        # create list containing an entry for each day within the next 14 days
-        next14days_dates = [datetime.date.today() + datetime.timedelta(days=x) for x in range(14)]
-        print(next14days_dates)
-        next14days_count = [0] * 14
-        now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
-
-        upcoming_event_dates = []
         for key, value in calender_ids.items():
-            print(key, value)
-            events_result = service.events().list(calendarId=value, timeMin=now, timeMax=(datetime.datetime.utcnow()+datetime.timedelta(days=14)).isoformat()+'Z',
-                                                  singleEvents=True,
-                                                  orderBy='startTime').execute()
+            print(f"*** {key}'s events ({value}): ***")
+
+            # Get events for the given mail address
+            events_result = service.events().list(calendarId=value, timeMin=period_start, timeMax=period_end,
+                                                  singleEvents=True, orderBy='startTime')\
+                                            .execute()
             events = events_result.get('items', [])
 
+            # Print events
             if not events:
                 print('No upcoming events found.')
                 continue
-
             for event in events:
-                start = event['start'].get('dateTime', event['start'].get('date'))
-                upcoming_event_dates.append(start)
-                # Get the timedelta from now to the event, respecting the timezone offset
-                timedelta = datetime.datetime.strptime(start, '%Y-%m-%dT%H:%M:%S%z').date() - datetime.datetime.now().replace(tzinfo=datetime.timezone.utc).date()
-                if 0 <= timedelta.days < 14:
-                    next14days_count[timedelta.days] += 1
-                print(timedelta.days, start, event['summary'] if 'summary' in event else '[No event description]')
-
-        next14days = zip(next14days_dates, next14days_count)
-        print(next14days)
-
-        # Bar plot the next14 days, labeling the bars with its date
-        df = pd.DataFrame(next14days, columns=['date', 'count'])
-        df.plot(kind='bar', figsize=(20, 10), x='date', y='count')
-        plt.show()
+                start = datetime.datetime.strptime(event['start'].get('dateTime'), '%Y-%m-%dT%H:%M:%S%z')
+                end = datetime.datetime.strptime(event['end'].get('dateTime'), '%Y-%m-%dT%H:%M:%S%z')
+                event_type = event['eventType'] if 'eventType' in event else '[No eventType]'
+                event_summary = event['summary'] if 'summary' in event else '[No event description]'
+                print(f"{start} (Duration: {end - start}, EventType: {event_type}): {event_summary}")
 
     except HttpError as error:
         print('An error occurred: %s' % error)
